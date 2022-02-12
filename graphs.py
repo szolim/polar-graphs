@@ -1,13 +1,14 @@
 import math, pygame
 
 class Graph(pygame.Surface):
-    def __init__(self, radius=200, res=1000, color=(255, 255, 255)) -> None:
+    def __init__(self, radius=200, res=1000, color=(255, 255, 255), bg_color=(0, 0, 0)) -> None:
         super().__init__((radius*2, radius*2))
         self.radius = radius
         self.res = res
         self.color = color
         self.graph_size = (radius, radius)
-        self.set_colorkey((0, 0, 0)) 
+        self.bg_color = bg_color
+        self.set_colorkey((self.bg_color)) 
     
     def eval_equation(self, angle, time=1):
         angle = time * angle #for graphs changing in time
@@ -15,16 +16,17 @@ class Graph(pygame.Surface):
         y = self.radius * math.sin(angle) + self.radius
         return (int(x), int(y))
 
-    def draw_graph(self, phase=0):
+    def draw_graph(self, phase=0, time=1) -> None:
+        self.fill(self.bg_color)
         for i in range(0, self.res):
             theta = (2*math.pi * i / self.res) + phase
-            coordinates = self.eval_equation(theta)
-            self.set_at((coordinates), self.color)
+            coordinates = self.eval_equation(theta, time=time)
+            self.set_at(coordinates, self.color)
     
 
 class RoseGraph(Graph):
-    def __init__(self, radius=200, res=1000, color=(255, 255, 255)) -> None:
-        super().__init__(radius, res, color)
+    def __init__(self, radius=200, res=1000, color=(255, 255, 255), bg_color=(0, 0, 0)) -> None:
+        super().__init__(radius, res, color, bg_color)
 
     def eval_equation(self, angle, time=1):
         r = math.sin(angle*time) #is it really r????
@@ -32,12 +34,39 @@ class RoseGraph(Graph):
         y = self.radius * r * math.sin(angle) + self.radius
         return (int(x), int(y))
 
-    def draw_graph(self, phase=0):
-        for i in range(0, self.res):
-            theta = 2*math.pi * i / self.res + phase
-            coordinates = self.eval_equation(theta)
-            self.set_at((coordinates), self.color)
+    def draw_graph(self, phase=0, time=1):
+        return super().draw_graph(phase, time=time)
             
+
+class SinGraph(Graph):
+    def __init__(self, radius=200, res=1000, color=(255, 255, 255), bg_color=(0, 0, 0)) -> None:
+        super().__init__(radius, res, color, bg_color)
+    
+    def eval_equation(self, angle=0, x=1, time=1):
+        y = self.radius/6*math.sin(x*12/self.radius*6 + 3*time) + self.radius
+        return (int(x), int(y))
+    
+    def draw_graph(self, phase=0, time=1):
+        self.fill(self.bg_color)
+        for i in range(0, self.res):
+            theta = (2*math.pi * i / self.res) + phase
+            coordinates = self.eval_equation(theta, time=time, x=i)
+            self.set_at(coordinates, self.color)
+        
+
+class WeirdGraph(Graph):
+    def __init__(self, radius=200, res=1000, color=(255, 255, 255), bg_color=(0, 0, 0)) -> None:
+        super().__init__(radius, res, color, bg_color)
+
+    def eval_equation(self, angle, time=1):
+        r = math.sin(angle)
+        x = self.radius*r*math.cos(angle) + self.radius# it's like x in polar coordinates; is it???
+        y = self.radius*r*math.sin(angle*time) + self.radius #it's like y in polar coordinates; is it???
+        return (int(x), int(y))
+
+    def draw_graph(self, phase=0, time=1):
+        return super().draw_graph(phase, time=time) 
+
 
 def circle_graph(size, res, scr_size, angle=0):
     graph_center = (scr_size[0]/2, scr_size[1]/2)
@@ -88,6 +117,6 @@ def weird_graph(size, res, scr_size, a, t):
     return points_list
 
 
-def center_the_graph(surf, graph):
-    return (surf.get_size()[0]/2 - graph.radius, surf.get_size()[1]/2 - graph.radius)
+def center_the_graph(surf, graph, pos=(0,0)):
+    return (surf.get_size()[0]/2 - graph.radius + pos[0], surf.get_size()[1]/2 - graph.radius + pos[1])
     
