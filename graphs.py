@@ -1,16 +1,43 @@
-import math
+import math, pygame
 
-def weird_graph(size, res, scr_size, a, t):
-    scr_center = (scr_size[0]/2, scr_size[1]/2)
-    points_list = []
-    for i in range(0, res):
-        theta = math.pi*a*i/res
-        r = math.sin(theta)
-        x = size*r*math.cos(theta) + scr_center[0]#it's like x in polar coordinates
-        y = size*r*math.sin(theta*t) + scr_center[1] #it's like y in polar coordinates
-        points_list.append((int(x), int(y)))
-    return points_list
+class Graph(pygame.Surface):
+    def __init__(self, radius=200, res=1000, color=(255, 255, 255)) -> None:
+        super().__init__((radius*2, radius*2))
+        self.radius = radius
+        self.res = res
+        self.color = color
+        self.graph_size = (radius, radius)
+        self.set_colorkey((0, 0, 0)) 
+    
+    def eval_equation(self, angle, time=1):
+        angle = time * angle #for graphs changing in time
+        x = self.radius * math.cos(angle) + self.radius
+        y = self.radius * math.sin(angle) + self.radius
+        return (int(x), int(y))
 
+    def draw_graph(self, phase=0):
+        for i in range(0, self.res):
+            theta = (2*math.pi * i / self.res) + phase
+            coordinates = self.eval_equation(theta)
+            self.set_at((coordinates), self.color)
+    
+
+class RoseGraph(Graph):
+    def __init__(self, radius=200, res=1000, color=(255, 255, 255)) -> None:
+        super().__init__(radius, res, color)
+
+    def eval_equation(self, angle, time=1):
+        r = math.sin(angle*time) #is it really r????
+        x = self.radius * r * math.cos(angle) + self.radius
+        y = self.radius * r * math.sin(angle) + self.radius
+        return (int(x), int(y))
+
+    def draw_graph(self, phase=0):
+        for i in range(0, self.res):
+            theta = 2*math.pi * i / self.res + phase
+            coordinates = self.eval_equation(theta)
+            self.set_at((coordinates), self.color)
+            
 
 def circle_graph(size, res, scr_size, angle=0):
     graph_center = (scr_size[0]/2, scr_size[1]/2)
@@ -48,3 +75,19 @@ def sin_graph(scr_size, t):
         points_list.append((int(x), int(y)))
     return points_list
 
+
+def weird_graph(size, res, scr_size, a, t):
+    scr_center = (scr_size[0]/2, scr_size[1]/2)
+    points_list = []
+    for i in range(0, res):
+        theta = math.pi*a*i/res
+        r = math.sin(theta)
+        x = size*r*math.cos(theta) + scr_center[0]#it's like x in polar coordinates
+        y = size*r*math.sin(theta*t) + scr_center[1] #it's like y in polar coordinates
+        points_list.append((int(x), int(y)))
+    return points_list
+
+
+def center_the_graph(surf, graph):
+    return (surf.get_size()[0]/2 - graph.radius, surf.get_size()[1]/2 - graph.radius)
+    
